@@ -1,7 +1,11 @@
+const ContactsRepository = require('../repositories/ContactsRepository');
+
 class ContactController {
-  index(request, response) {
+  async index(request, response) {
     // Listar todos os registros
-    response.send('Send from Contact Controller');
+    const contacts = await ContactsRepository.findAll();
+
+    response.json(contacts);
   }
 
   show() {
@@ -21,5 +25,6 @@ class ContactController {
   }
 }
 
-// Singleton
+// Design Pattern - Singleton
+// Assim teremos certeza de que essa classe será instanciada apenas 1x
 module.exports = new ContactController();
