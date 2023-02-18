@@ -5,7 +5,7 @@ class CategoryController {
     const { orderBy } = request.query;
     const categories = await CategoriesRepository.findAll(orderBy);
 
-    return response.json(categories);
+    response.json(categories);
   }
 
   async store(request, response) {
