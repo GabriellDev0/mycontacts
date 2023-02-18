@@ -3,31 +3,13 @@
 // Como por exemplo: Buscar o findALL(), ele quer os contatos e nada mais
 // Se o banco de dados tiver off ou algo do tipo, ai não é com ele,
 // Ele não trata erros.
-const { v4 } = require('uuid');
-
 const db = require('../../database/index');
 
-let contacts = [
-  {
-    id: v4(),
-    name: 'Gabriel',
-    email: 'gabrielldev0@gmail.com',
-    phone: '98996132730',
-    category_id: v4(),
-  },
-  {
-    id: v4(),
-    name: 'Jose',
-    email: 'jose123@gmail.com',
-    phone: '23242525',
-    category_id: v4(),
-  },
-];
-
 class ContactsRepository {
-  async findAll() {
+  async findAll(orderBy) {
+    const direction = orderBy?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC';
     const rows = await db.query(`
-      SELECT * FROM contacts
+      SELECT * FROM contacts ORDER BY name ${direction}
     `);
     return rows;
   }
@@ -48,11 +30,12 @@ class ContactsRepository {
     return rows;
   }
 
-  delete(id) {
-    return new Promise((resolve) => {
-      contacts = contacts.filter((contact) => contact.id !== id);
-      resolve();
-    });
+  async delete(id) {
+    const deleteOp = await db.query(`
+      DELETE FROM contacts
+      WHERE id = $1
+    `, [id]);
+    return deleteOp;
   }
 
   async create({
@@ -67,22 +50,16 @@ class ContactsRepository {
     return row;
   }
 
-  update(id, {
+  async update(id, {
     name, email, phone, category_id,
   }) {
-    return new Promise((resolve) => {
-      const updatedContact = {
-        id,
-        name,
-        email,
-        phone,
-        category_id,
-      };
-      contacts = contacts.map((contact) => (
-        contact.id === id ? updatedContact : contact
-      ));
-      resolve(updatedContact);
-    });
+    const [row] = await db.query(`
+        UPDATE contacts
+        SET name = $1, email = $2, phone = $3, category_id = $4
+        WHERE id = $5
+        RETURNING *
+      `, [name, email, phone, category_id, id]);
+    return row;
   }
 }
 
